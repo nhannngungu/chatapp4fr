@@ -36,11 +36,11 @@ const server = app.listen(PORT, () => {
 
 const io = socket(server, {
   cors: {
-    // SỬA ĐOẠN NÀY:
     origin: [
       "http://localhost:5173",                 // Cho phép máy local
-      "https://chatapp4fr-1.onrender.com",     // Cho phép web đã deploy (Dán link của bạn vào đây)
+      "https://chatapp4fr-1.onrender.com"      // Cho phép Web Client (Link Frontend của bạn)
     ],
+    methods: ["GET", "POST"],
     credentials: true,
   },
 });
