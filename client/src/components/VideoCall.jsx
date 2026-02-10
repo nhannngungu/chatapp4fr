@@ -30,15 +30,32 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
   const connectionRef = useRef();
   
   // ICE Servers Configuration
+  // Cấu hình Server "xịn" từ Metered (Đã copy từ ảnh của bạn)
   const peerConfig = {
       iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478' },
-          { urls: 'stun:stun.services.mozilla.com' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:stun3.l.google.com:19302' },
-          { urls: 'stun:stun4.l.google.com:19302' }
+        {
+          urls: "stun:stun.relay.metered.ca:80",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80",
+          username: "dc7bfc5c8423eaa299bc761f",
+          credential: "Imwg0bb8pFwN656k",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80?transport=tcp",
+          username: "dc7bfc5c8423eaa299bc761f",
+          credential: "Imwg0bb8pFwN656k",
+        },
+        {
+           urls: "turn:global.relay.metered.ca:443",
+           username: "dc7bfc5c8423eaa299bc761f",
+           credential: "Imwg0bb8pFwN656k",
+        },
+         {
+           urls: "turns:global.relay.metered.ca:443?transport=tcp",
+           username: "dc7bfc5c8423eaa299bc761f",
+           credential: "Imwg0bb8pFwN656k",
+        }
       ]
   };
 
