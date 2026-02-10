@@ -36,10 +36,7 @@ const server = app.listen(PORT, () => {
 
 const io = socket(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",                 // Cho phép máy local
-      "https://chatapp4fr-1.onrender.com"      // Cho phép Web Client (Link Frontend của bạn)
-    ],
+    origin: "*", // Allow all origins for easier deployment debugging
     methods: ["GET", "POST"],
     credentials: true,
   },

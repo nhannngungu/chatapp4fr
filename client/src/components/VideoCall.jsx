@@ -14,6 +14,7 @@ import { theme } from "../utils/theme";
 
 export default function VideoCall({ socket, currentUser, currentChat, endCallParent, incomingCallData }) {
   const [stream, setStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null); // New state for remote stream
   const [receivingCall, setReceivingCall] = useState(false);
   const [caller, setCaller] = useState("");
   const [callerSignal, setCallerSignal] = useState();
@@ -32,14 +33,21 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
   const peerConfig = {
       iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478' }
+          { urls: 'stun:global.stun.twilio.com:3478' },
+          { urls: 'stun:stun.services.mozilla.com' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' }
       ]
   };
 
   useEffect(() => {
     // 1. Get User Media
+    console.log("Requesting media devices...");
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((currentStream) => {
+            console.log("Media stream obtained");
             setStream(currentStream);
             if (myVideo.current) {
                 myVideo.current.srcObject = currentStream;
@@ -51,7 +59,7 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
             endCallParent();
         });
 
-    // 2. Handle Incoming Call Data (if component mounted via incoming call)
+    // ... (rest of the code)
     if (incomingCallData) {
         setReceivingCall(true);
         setCaller(incomingCallData.from);
@@ -70,6 +78,13 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
         }
     };
   }, []);
+
+  // Effect to attach remote stream when video element is ready
+  useEffect(() => {
+      if (userVideo.current && remoteStream) {
+          userVideo.current.srcObject = remoteStream;
+      }
+  }, [remoteStream, callAccepted]); // Run when stream arrives or UI updates to show video
 
   // 3. Listen for Call Accepted
   useEffect(() => {
@@ -119,21 +134,27 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
       });
     });
 
-    peer.on("stream", (remoteStream) => {
-      if (userVideo.current) {
-        userVideo.current.srcObject = remoteStream;
-      }
+    peer.on("stream", (currentRemoteStream) => {
+        setRemoteStream(currentRemoteStream); // Update state instead of ref directly
     });
     
     peer.on("error", (err) => {
         console.error("Peer error:", err);
+        // Optional: Notify user of connection failure
     });
 
     connectionRef.current = peer;
   };
 
   const answerCall = () => {
+    if (!stream) {
+        console.warn("Cannot answer: Stream not ready");
+        alert("Wait for your camera to load!");
+        return;
+    }
+
     setCallAccepted(true);
+    console.log("Answering call...");
     const peer = new Peer({
       initiator: false,
       trickle: false,
@@ -142,13 +163,13 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
     });
 
     peer.on("signal", (data) => {
+      console.log("Sending answer signal");
       socket.current.emit("answer-call", { signal: data, to: caller });
     });
 
-    peer.on("stream", (remoteStream) => {
-      if (userVideo.current) {
-        userVideo.current.srcObject = remoteStream;
-      }
+    peer.on("stream", (currentRemoteStream) => {
+        console.log("Received remote stream");
+        setRemoteStream(currentRemoteStream); 
     });
 
     peer.on("error", (err) => {
@@ -224,15 +245,20 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
           </div>
       </div>
       
-      {/* Incoming Call Overlay */}
+            {/* Incoming Call Overlay */}
       {receivingCall && !callAccepted && (
         <div className="overlay incoming-call">
           <div className="glass-card">
               <h2>{name}</h2>
               <p>is calling you...</p>
               <div className="actions">
-                <button className="btn-accept" onClick={answerCall}>
-                    <BsTelephoneXFill style={{transform: "rotate(135deg)"}}/> Accept
+                <button 
+                    className="btn-accept" 
+                    onClick={answerCall}
+                    disabled={!stream} 
+                    style={{ opacity: !stream ? 0.5 : 1, cursor: !stream ? 'not-allowed' : 'pointer' }}
+                >
+                    <BsTelephoneXFill style={{transform: "rotate(135deg)"}}/> {stream ? "Accept" : "Loading Cam..."}
                 </button>
                 <button className="btn-reject" onClick={leaveCall}>
                     <BsTelephoneXFill /> Reject

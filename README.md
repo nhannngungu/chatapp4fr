@@ -2,6 +2,40 @@
 
 Dự án chat realtime sử dụng MERN stack (MongoDB, Express, React, Node.js) và Socket.IO.
 
+## 🛠 Công nghệ & Nền tảng (Tech Stack)
+
+Website hoạt động dựa trên các công nghệ cốt lõi sau:
+
+### 1. Frontend (Giao diện người dùng)
+- **React.js (Vite):** Thư viện JavaScript để xây dựng giao diện người dùng tương tác, SPA (Single Page Application).
+- **Styled-components:** Viết CSS trực tiếp trong file JavaScript (CSS-in-JS), giúp quản lý style theo component.
+- **Socket.io-client:** Thư viện client để kết nối thời gian thực với server.
+- **Simple-peer (WebRTC):** Xử lý kết nối Video Call ngang hàng (Peer-to-Peer) trực tiếp giữa các trình duyệt.
+- **Axios:** Thư viện gọi API (HTTP requests) tới server.
+
+### 2. Backend (Máy chủ xử lý)
+- **Node.js:** Môi trường chạy mã JavaScript phía server (Runtime Environment).
+- **Express.js:** Framework web tối giản cho Node.js, xử lý các API Route (Login, Register, User info).
+- **Socket.io:** Engine xử lý giao tiếp thời gian thực (WebSocket), giúp tin nhắn gửi đi được nhận ngay lập tức mà không cần tải lại trang.
+- **Mongoose:** Thư viện mô hình hóa dữ liệu (ODM) để làm việc với MongoDB dễ dàng hơn.
+
+### 3. Database (Cơ sở dữ liệu)
+- **MongoDB:** Cơ sở dữ liệu NoSQL lưu trữ thông tin người dùng, tin nhắn dưới dạng JSON-like documents.
+
+### 🌐 Cơ chế hoạt động Online
+
+1. **Kiến trúc Client-Server (REST API):**
+   - Khi bạn truy cập web, trình duyệt tải mã React về máy.
+   - Các hành động như *Đăng nhập, Lấy danh sách bạn bè* sẽ gửi yêu cầu HTTP (GET/POST) lên Server. Server truy vấn Database và trả về dữ liệu JSON.
+
+2. **Giao tiếp thời gian thực (Real-time):**
+   - Sau khi đăng nhập, Client mở một "đường ống" kết nối liên tục (Socket) tới Server.
+   - Khi bạn nhắn tin, tin nhắn đi qua "đường ống" này tới Server, và Server chuyển tiếp ngay lập tức tới người nhận. Quá trình này diễn ra trong mili-giây.
+
+3. **Video Call (Peer-to-Peer):**
+   - WebRTC được sử dụng để truyền Video/Audio trực tiếp giữa 2 trình duyệt.
+   - Server chỉ đóng vai trò "người môi giới" (Signaling) ban đầu để 2 máy tìm thấy nhau. Sau đó dữ liệu hình ảnh đi thẳng từ máy bạn sang máy đối phương, không qua server (giảm tải cho server và tăng tốc độ).
+
 ## Tính năng
 - Chat văn bản thời gian thực
 - Gửi hình ảnh, Voice message
