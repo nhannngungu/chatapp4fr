@@ -33,11 +33,16 @@ const server = app.listen(PORT, () => {
 });
 
 // Cấu hình Socket.io (Quan trọng cho chat)
+
 const io = socket(server, {
-    cors: {
-        origin: "http://localhost:5173", // Đây là port mặc định của Vite React (Frontend)
-        credentials: true,
-    },
+  cors: {
+    // SỬA ĐOẠN NÀY:
+    origin: [
+      "http://localhost:5173",                 // Cho phép máy local
+      "https://chatapp4fr-1.onrender.com",     // Cho phép web đã deploy (Dán link của bạn vào đây)
+    ],
+    credentials: true,
+  },
 });
 
 global.onlineUsers = new Map();
