@@ -155,15 +155,29 @@ const Container = styled.div`
   background-color: #080420;
   padding: 0 2rem;
   padding-bottom: 0.3rem;
+  height: 100%;
+  
   @media screen and (min-width: 720px) and (max-width: 1080px) {
     padding: 0 1rem;
     gap: 1rem;
   }
+  
+  @media screen and (max-width: 720px) {
+      grid-template-columns: 20% 80%;
+      padding: 0 0.5rem;
+      padding-bottom: 0.3rem;
+  }
+
   .button-container {
     display: flex;
     align-items: center;
     color: white;
     gap: 1rem;
+    
+    @media screen and (max-width: 720px) {
+        gap: 0.5rem;
+    }
+
     .emoji {
       position: relative;
       svg {
@@ -179,6 +193,17 @@ const Container = styled.div`
         background-color: #080420;
         box-shadow: 0 5px 10px #9a86f3;
         border-color: #9a86f3;
+        
+        @media screen and (max-width: 720px) {
+            top: -350px;
+            left: -10px;
+            
+            .EmojiPickerReact {
+                width: 280px !important;
+                height: 350px !important;
+            }
+        }
+
         .emoji-scroll-wrapper::-webkit-scrollbar {
           background-color: #080420;
           width: 5px;

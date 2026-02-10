@@ -4,9 +4,9 @@ import ChatInput from "./ChatInput";
 import axios from "axios";
 import { sendMessageRoute, receiveMessageRoute, host, addReactionRoute } from "../utils/APIRoutes";
 import { v4 as uuidv4 } from "uuid";
-import { BsCameraVideoFill, BsHeart, BsHeartFill } from "react-icons/bs";
+import { BsCameraVideoFill, BsHeart, BsHeartFill, BsArrowLeft } from "react-icons/bs";
 
-export default function ChatContainer({ currentChat, currentUser, socket, onVideoCall }) {
+export default function ChatContainer({ currentChat, currentUser, socket, onVideoCall, onBack }) {
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
@@ -145,6 +145,11 @@ export default function ChatContainer({ currentChat, currentUser, socket, onVide
     <Container>
       <div className="chat-header">
         <div className="user-details">
+          {onBack && (
+            <div className="back-button" onClick={onBack}>
+                <BsArrowLeft />
+            </div>
+          )}
           <div className="avatar">
             <img
               src={`data:image/svg+xml;base64,${currentChat?.avatarImage}`}
@@ -206,26 +211,57 @@ const Container = styled.div`
   grid-template-rows: 10% 80% 10%;
   gap: 0.1rem;
   overflow: hidden;
+  height: 100%;
+
   @media screen and (min-width: 720px) and (max-width: 1080px) {
     grid-template-rows: 15% 70% 15%;
   }
+
+  @media screen and (max-width: 720px) {
+    grid-template-rows: 10% 80% 10%;
+    .chat-header {
+        padding: 0 1rem;
+    }
+    .chat-messages {
+        padding: 1rem;
+    }
+  }
+
   .chat-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 2rem;
+    
     .user-details {
       display: flex;
       align-items: center;
       gap: 1rem;
+      
+      .back-button {
+          display: none;
+          cursor: pointer;
+          svg {
+              color: white;
+              font-size: 1.5rem;
+          }
+          @media screen and (max-width: 720px) {
+              display: flex;
+              align-items: center;
+          }
+      }
+
       .avatar {
         img {
           height: 3rem;
+          width: 3rem;
+          object-fit: cover;
         }
       }
       .username {
         h3 {
           color: white;
+          font-size: 1.1rem;
         }
         .typing {
             font-size: 0.8rem;
@@ -270,13 +306,24 @@ const Container = styled.div`
         font-size: 1.1rem;
         border-radius: 1rem;
         color: #d1d1d1;
+        
         @media screen and (min-width: 720px) and (max-width: 1080px) {
           max-width: 70%;
         }
+        @media screen and (max-width: 720px) {
+            max-width: 85%;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+
         img {
             max-width: 300px;
             max-height: 300px;
              border-radius: 1rem;
+             @media screen and (max-width: 720px) {
+                 max-width: 200px;
+                 max-height: 200px;
+             }
          }
          .reaction-area {
              display: flex;

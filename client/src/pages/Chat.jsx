@@ -8,41 +8,28 @@ import ChatContainer from "../components/ChatContainer";
 import Contacts from "../components/Contacts";
 import Welcome from "../components/Welcome";
 import VideoCall from "../components/VideoCall";
-import { playNotificationSound, showBrowserNotification } from "../utils/notificationUtils";
+import { theme } from "../utils/theme";
 
 export default function Chat() {
   const navigate = useNavigate();
   const socket = useRef();
   const [contacts, setContacts] = useState([]);
   const [currentChat, setCurrentChat] = useState(undefined);
-  const currentChatRef = useRef(undefined); // Ref to track currentChat in socket listeners
-  const contactsRef = useRef([]); // Ref to track contacts
   const [currentUser, setCurrentUser] = useState(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
 
-  useEffect(() => {
-    currentChatRef.current = currentChat;
-  }, [currentChat]);
-
-  useEffect(() => {
-    contactsRef.current = contacts;
-  }, [contacts]);
-
+  // Check User Session
   useEffect(() => {
     async function checkUser() {
       if (!localStorage.getItem("chat-app-user")) {
         navigate("/login");
       } else {
-        setCurrentUser(
-          await JSON.parse(localStorage.getItem("chat-app-user"))
-        );
+        setCurrentUser(await JSON.parse(localStorage.getItem("chat-app-user")));
         setIsLoaded(true);
-        
-        // Request notification permission on load
-        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        if ("Notification" in window && Notification.permission !== "granted") {
           Notification.requestPermission();
         }
       }
@@ -50,20 +37,16 @@ export default function Chat() {
     checkUser();
   }, []);
 
+  // Initialize Socket
   useEffect(() => {
     if (currentUser) {
       socket.current = io(host);
       socket.current.emit("add-user", currentUser._id);
       
-      socket.current.on("online-users-list", (users) => {
-        setOnlineUsers(users);
-      });
-      socket.current.on("user-online", (userId) => {
-        setOnlineUsers((prev) => [...prev, userId]);
-      });
-      socket.current.on("user-offline", (userId) => {
-        setOnlineUsers((prev) => prev.filter((id) => id !== userId));
-      });
+      socket.current.on("online-users-list", (users) => setOnlineUsers(users));
+      socket.current.on("user-online", (userId) => setOnlineUsers((prev) => [...prev, userId]));
+      socket.current.on("user-offline", (userId) => setOnlineUsers((prev) => prev.filter((id) => id !== userId)));
+      
       socket.current.on("call-user", (data) => {
         setIncomingCallData(data);
         setIsVideoCallActive(true);
@@ -71,6 +54,7 @@ export default function Chat() {
     }
   }, [currentUser]);
 
+  // Load Contacts
   useEffect(() => {
     async function getContacts() {
       if (currentUser) {
@@ -89,11 +73,17 @@ export default function Chat() {
     setCurrentChat(chat);
   };
 
+  const handleBackToContacts = () => {
+    setCurrentChat(undefined);
+  };
+
   return (
-    <>
-      <Container>
-        <div className="container">
+    <Container $isChatSelected={currentChat !== undefined}>
+      <div className="container">
+        <div className="contacts-container">
           <Contacts contacts={contacts} changeChat={handleChatChange} onlineUsers={onlineUsers} />
+        </div>
+        <div className="chat-container">
           {isLoaded && currentChat === undefined ? (
             <Welcome />
           ) : (
@@ -102,23 +92,25 @@ export default function Chat() {
                 currentUser={currentUser} 
                 socket={socket} 
                 onVideoCall={() => setIsVideoCallActive(true)}
+                onBack={handleBackToContacts}
             />
           )}
         </div>
-        {isVideoCallActive && (
-            <VideoCall 
-                socket={socket} 
-                currentUser={currentUser} 
-                currentChat={currentChat} 
-                incomingCallData={incomingCallData}
-                endCallParent={() => {
-                    setIsVideoCallActive(false);
-                    setIncomingCallData(null);
-                }}
-            />
-        )}
-      </Container>
-    </>
+      </div>
+      
+      {isVideoCallActive && (
+          <VideoCall 
+              socket={socket} 
+              currentUser={currentUser} 
+              currentChat={currentChat} 
+              incomingCallData={incomingCallData}
+              endCallParent={() => {
+                  setIsVideoCallActive(false);
+                  setIncomingCallData(null);
+              }}
+          />
+      )}
+    </Container>
   );
 }
 
@@ -126,19 +118,63 @@ const Container = styled.div`
   height: 100vh;
   width: 100vw;
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  gap: 1rem;
   align-items: center;
-  background-color: #131324;
+  background-color: ${theme.colors.background};
+  background-image: radial-gradient(circle at 50% 50%, #202040 0%, ${theme.colors.background} 100%);
+  
   .container {
-    height: 85vh;
-    width: 85vw;
-    background-color: #00000076;
+    height: 90vh;
+    width: 90vw;
+    background-color: ${theme.colors.surface};
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid ${theme.colors.surfaceLight};
+    box-shadow: ${theme.shadows.card};
     display: grid;
-    grid-template-columns: 25% 75%;
-    @media screen and (min-width: 720px) and (max-width: 1080px) {
+    grid-template-columns: 1fr; 
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    /* Mobile First Logic */
+    .contacts-container {
+      display: ${(props) => (props.$isChatSelected ? "none" : "block")};
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+    
+    .chat-container {
+      display: ${(props) => (props.$isChatSelected ? "block" : "none")};
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Tablet & Desktop */
+    @media (min-width: ${theme.breakpoints.tablet}) {
       grid-template-columns: 35% 65%;
+      
+      .contacts-container {
+        display: block;
+        border-right: 1px solid ${theme.colors.surfaceLight};
+      }
+      
+      .chat-container {
+        display: block;
+      }
+    }
+
+    @media (min-width: ${theme.breakpoints.desktop}) {
+      grid-template-columns: 25% 75%;
+    }
+
+    /* Mobile Fullscreen Override */
+    @media (max-width: ${theme.breakpoints.tablet}) {
+      height: 100vh;
+      width: 100vw;
+      border-radius: 0;
+      border: none;
     }
   }
 `;
