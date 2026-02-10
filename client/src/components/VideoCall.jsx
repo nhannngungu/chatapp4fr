@@ -49,9 +49,7 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
         .then((currentStream) => {
             console.log("Media stream obtained");
             setStream(currentStream);
-            if (myVideo.current) {
-                myVideo.current.srcObject = currentStream;
-            }
+            // Don't set ref here, rely on the new effect below
         })
         .catch((err) => {
             console.error("Error accessing media devices:", err);
@@ -78,6 +76,13 @@ export default function VideoCall({ socket, currentUser, currentChat, endCallPar
         }
     };
   }, []);
+
+  // New Effect: Attach local stream to myVideo ref whenever stream is ready
+  useEffect(() => {
+      if (myVideo.current && stream) {
+          myVideo.current.srcObject = stream;
+      }
+  }, [stream]);
 
   // Effect to attach remote stream when video element is ready
   useEffect(() => {
